@@ -25,7 +25,7 @@ from src.workloads.uniform_random import generate_workload_a
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run single-step machine unlearning experiment.")
-    parser.add_argument("--method", type=str, default="asuc", choices=["asuc", "ssd", "salun", "ga", "retrain"],
+    parser.add_argument("--method", type=str, default="asuc", choices=["asuc", "ssd", "salun", "ga", "gradient_ascent", "retrain"],
                         help="Unlearning method to run.")
     parser.add_argument("--workload", type=str, default="a", choices=["a", "b", "c"],
                         help="Workload type (a: Uniform, b: Class-sequential, c: High-influence).")
@@ -112,7 +112,7 @@ def main():
         res = salun.unlearn(unlearn_model, train_dataset, forget_indices, retain_indices)
         unlearned_model = res.model
         unlearn_time = res.unlearning_time_seconds
-    elif args.method == "ga":
+    elif args.method in ("ga", "gradient_ascent"):
         ga = GradientAscentUnlearner(device=device, epochs=5, learning_rate=1e-3)
         res = ga.unlearn(unlearn_model, train_dataset, forget_indices)
         unlearned_model = res.model

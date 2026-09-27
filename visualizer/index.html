@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASUC-SOM | Closed-Loop Adaptive Sequential Machine Unlearning Visualizer</title>
+    <meta name="description" content="Interactive visualizer and benchmark dashboard for ASUC-SOM closed-loop adaptive machine unlearning controller on ResNet-18 CIFAR-10.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">Ω</div>
+                <div class="brand-info">
+                    <h1>ASUC-SOM</h1>
+                    <span>Adaptive Unlearning</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-item active" data-tab="tab-overview" id="nav-overview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                    <span>Overview Dashboard</span>
+                </div>
+                <div class="nav-item" data-tab="tab-som" id="nav-som">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                    <span>SOM Subspace Tracker</span>
+                </div>
+                <div class="nav-item" data-tab="tab-benchmark" id="nav-benchmark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    <span>Comparative Studio</span>
+                </div>
+                <div class="nav-item" data-tab="tab-simulator" id="nav-simulator">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Request Profiler Sandbox</span>
+                </div>
+                <div class="nav-item" data-tab="tab-rounds" id="nav-rounds">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                    <span>Rounds Ledger</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div>Model: <strong>ResNet-18</strong></div>
+                <div>Dataset: <strong>CIFAR-10</strong></div>
+                <div class="status-badge-inline">
+                    <span class="dot"></span> ASUC Engine Active
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-title">
+                    <h2>Closed-Loop Sequential Unlearning Dashboard</h2>
+                    <p>Meta-Controller & Subspace Orthogonality Metric Analytics</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="window.location.reload()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        Refresh State
+                    </button>
+                    <button class="btn btn-primary" onclick="document.getElementById('nav-simulator').click()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Test Sandbox
+                    </button>
+                </div>
+            </header>
+
+            <div class="view-container">
+                <!-- TAB 1: OVERVIEW DASHBOARD -->
+                <section class="tab-view active" id="tab-overview">
+                    <!-- KPI Cards -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card" style="--accent-color: #06b6d4;">
+                            <div class="kpi-header">
+                                <span class="kpi-title">Retain Accuracy</span>
+                                <div class="kpi-icon">🎯</div>
+                            </div>
+                            <div class="kpi-value" id="kpiRetainAcc">98.0%</div>
+                            <div class="kpi-meta"><span class="trend-up">▲ 0.1%</span> vs Retrain Counterfactual</div>
+                        </div>
+                        <div class="kpi-card" style="--accent-color: #10b981;">
+                            <div class="kpi-header">
+                                <span class="kpi-title">Test Utility</span>
+                                <div class="kpi-icon">⚡</div>
+                            </div>
+                            <div class="kpi-value" id="kpiTestAcc">91.5%</div>
+                            <div class="kpi-meta"><span class="trend-neutral">● Stable</span> 20 Sequential Rounds</div>
+                        </div>
+                        <div class="kpi-card" style="--accent-color: #8b5cf6;">
+                            <div class="kpi-header">
+                                <span class="kpi-title">Forget Efficacy</span>
+                                <div class="kpi-icon">🗑️</div>
+                            </div>
+                            <div class="kpi-value" id="kpiForgetAcc">10.0%</div>
+                            <div class="kpi-meta"><span class="trend-up">✓ Purged</span> Random Guess Baseline</div>
+                        </div>
+                        <div class="kpi-card" style="--accent-color: #f59e0b;">
+                            <div class="kpi-header">
+                                <span class="kpi-title">Compute Speedup</span>
+                                <div class="kpi-icon">🚀</div>
+                            </div>
+                            <div class="kpi-value" id="kpiSpeedup">148x</div>
+                            <div class="kpi-meta"><span class="trend-up">⚡ Faster</span> than Full Retraining</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid-2">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <h3>Sequential Retain Accuracy Retention</h3>
+                                    <p>Preservation of remaining data utility across 20 unlearning rounds</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="chartRetentionComparison"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <h3>Subspace Orthogonality Metric (SOM) Drift</h3>
+                                    <p>Projection overlap against decaying historical basis Q (Green / Amber / Red)</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="chartSOMTrajectory"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Class Radar & Speedup Bar -->
+                    <div class="charts-grid-2">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <h3>Class-Wise Utility Preservation</h3>
+                                    <p>Per-class CIFAR-10 accuracy after 20 sequential deletion cycles</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="chartClassRadar"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <h3>Cumulative Benchmark Speedup</h3>
+                                    <p>Logarithmic speedup factor relative to exact clean retraining</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="chartSpeedup"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: SOM SUBSPACE TRACKER -->
+                <section class="tab-view" id="tab-som">
+                    <div class="chart-card" style="margin-bottom: 24px;">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <h3>Subspace Projection Dynamics (2D/3D Orthogonal Basis)</h3>
+                                <p>Live visualization of incoming deletion gradient g_t projected onto decaying low-rank basis Q</p>
+                            </div>
+                        </div>
+                        <div class="canvas-wrapper">
+                            <canvas id="subspaceCanvas"></canvas>
+                            <div class="canvas-legend">
+                                <div class="legend-item"><span class="legend-dot" style="background: #38bdf8;"></span> Q Basis Vector 1</div>
+                                <div class="legend-item"><span class="legend-dot" style="background: #818cf8;"></span> Q Basis Vector 2</div>
+                                <div class="legend-item"><span class="legend-dot" style="background: #f43f5e;"></span> Incoming Gradient g_t</div>
+                                <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span> Subspace Projection Q^T g_t</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid-1">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <h3>Relative Parameter Distance Drift ||θ_t - θ_0|| / ||θ_0||</h3>
+                                    <p>Cumulative weight movement away from baseline model weights</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="chartParamDrift"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: COMPARATIVE STUDIO -->
+                <section class="tab-view" id="tab-benchmark">
+                    <div class="table-card">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <h3>Method Benchmark Comparison (Workload A, 20 Rounds)</h3>
+                                <p>Standardized 4-pillar evaluation across retain utility, speed, and parameter fatigue</p>
+                            </div>
+                        </div>
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Mechanism</th>
+                                    <th>Retain Acc (%)</th>
+                                    <th>Test Acc (%)</th>
+                                    <th>Collapse Round</th>
+                                    <th>Speedup vs Retrain</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong style="color: #38bdf8;">Exact Retrain</strong></td>
+                                    <td>Clean retraining from scratch</td>
+                                    <td>99.1%</td>
+                                    <td>92.7%</td>
+                                    <td><span class="badge-tag badge-green">None (Optimal)</span></td>
+                                    <td>1.0x (Baseline)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: #06b6d4;">ASUC-SOM (Ours)</strong></td>
+                                    <td>Adaptive Closed-Loop Meta-Controller</td>
+                                    <td><strong>98.0%</strong></td>
+                                    <td><strong>91.5%</strong></td>
+                                    <td><span class="badge-tag badge-green">None (Stable)</span></td>
+                                    <td><strong>~148x</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: #10b981;">SSD (Static)</strong></td>
+                                    <td>Selective Synaptic Dampening</td>
+                                    <td>74.5%</td>
+                                    <td>65.2%</td>
+                                    <td><span class="badge-tag badge-red">Round 14</span></td>
+                                    <td>~215x</td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: #8b5cf6;">SalUn (Static)</strong></td>
+                                    <td>Saliency Masked Unlearning</td>
+                                    <td>78.4%</td>
+                                    <td>72.3%</td>
+                                    <td><span class="badge-tag badge-amber">Round 16</span></td>
+                                    <td>~114x</td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: #f43f5e;">Gradient Ascent</strong></td>
+                                    <td>Direct Loss Ascent Baseline</td>
+                                    <td>10.0%</td>
+                                    <td>10.0%</td>
+                                    <td><span class="badge-tag badge-red">Round 3</span></td>
+                                    <td>~875x</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- TAB 4: REQUEST PROFILER SANDBOX -->
+                <section class="tab-view" id="tab-simulator">
+                    <div class="sim-container">
+                        <!-- Controls Panel -->
+                        <div class="sim-panel">
+                            <h3 class="sim-panel-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                                Request Parameters
+                            </h3>
+
+                            <div class="sim-control-group">
+                                <div class="sim-label-row">
+                                    <span>Deletion Cardinality (|Df|)</span>
+                                    <span class="sim-val-badge" id="cardinalityVal">500 samples</span>
+                                </div>
+                                <input type="range" class="sim-slider" id="cardinalitySlider" min="50" max="5000" step="50" value="500">
+                            </div>
+
+                            <div class="sim-control-group">
+                                <div class="sim-label-row">
+                                    <span>Class Entropy H(c)</span>
+                                    <span class="sim-val-badge" id="entropyVal">0.95</span>
+                                </div>
+                                <input type="range" class="sim-slider" id="entropySlider" min="0.0" max="1.0" step="0.05" value="0.95">
+                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
+                                    &lt; 0.40 indicates single-class / concentrated stress
+                                </div>
+                            </div>
+
+                            <div class="sim-control-group">
+                                <div class="sim-label-row">
+                                    <span>SOM Subspace Overlap</span>
+                                    <span class="sim-val-badge" id="somVal">0.25</span>
+                                </div>
+                                <input type="range" class="sim-slider" id="somSlider" min="0.0" max="1.0" step="0.02" value="0.25">
+                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
+                                    Green (&lt; 0.40), Amber (0.40 - 0.80), Red (&gt;= 0.80)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Routing Decision Output -->
+                        <div class="decision-card">
+                            <div class="chart-title" style="margin-bottom: 14px;">
+                                <h3>ASUC Router Real-Time Decision</h3>
+                                <p>Dynamic routing state machine & verification projection</p>
+                            </div>
+
+                            <div id="simDecisionBadge" class="decision-badge-large badge-ssd">
+                                <span>▶ Primitive:</span> SSD
+                            </div>
+
+                            <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;" id="simReason">
+                                Healthy subspace and balanced entropy. Routing to Tier 1 SSD for instantaneous unlearning.
+                            </div>
+
+                            <div class="decision-meta-grid">
+                                <div class="decision-meta-item">
+                                    <span>Routing Tier</span>
+                                    <p id="simTier">Tier 1 (Rapid Dampening)</p>
+                                </div>
+                                <div class="decision-meta-item">
+                                    <span>Subspace Health</span>
+                                    <p id="simHealthBadge" style="color: var(--health-green);">GREEN (0.25)</p>
+                                </div>
+                                <div class="decision-meta-item">
+                                    <span>Expected Speedup</span>
+                                    <p id="simSpeedup" style="color: var(--accent-cyan);">150x</p>
+                                </div>
+                                <div class="decision-meta-item">
+                                    <span>Safety Gate</span>
+                                    <p id="simVerification" style="color: var(--health-green);">PASS</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 5: ROUNDS LEDGER -->
+                <section class="tab-view" id="tab-rounds">
+                    <div class="table-card">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <h3>ASUC-SOM 20-Round Sequential Execution Ledger</h3>
+                                <p>Round-by-round SOM scores, selected parameters, retain utility, and MIA protection</p>
+                            </div>
+                        </div>
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Round</th>
+                                    <th>Health</th>
+                                    <th>SOM Score</th>
+                                    <th>Primitive</th>
+                                    <th>Retain Acc</th>
+                                    <th>Test Acc</th>
+                                    <th>Forget Acc</th>
+                                    <th>Param Drift</th>
+                                    <th>Modified Params</th>
+                                    <th>MIA AUC</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roundsTableBody">
+                                <!-- Populated dynamically by app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

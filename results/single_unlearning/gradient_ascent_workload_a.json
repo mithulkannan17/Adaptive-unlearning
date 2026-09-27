@@ -1,0 +1,22 @@
+{
+    "forget_loss": 0.02448616397380829,
+    "forget_accuracy": 99.6,
+    "mia_auc_score": 0.49646199999999996,
+    "mia_privacy_leakage": 0.0,
+    "retain_loss": 0.019538877691885437,
+    "retain_accuracy": 99.48686868686869,
+    "test_loss": 0.22605263199806214,
+    "test_accuracy": 93.3,
+    "test_accuracy_drop": 0.14000000000000057,
+    "utility_retention_ratio": 0.9985017123287672,
+    "parameter_distance": 0.005239690352351071,
+    "parameter_norm": 31.64563904764339,
+    "reference_parameter_norm": 31.64568195698291,
+    "relative_parameter_distance": 0.00016557362737429918,
+    "forget_size": 500.0,
+    "retain_size": 49500.0,
+    "unlearning_time_seconds": 1.8660222999969847,
+    "evaluation_time_seconds": 59.2171401999949,
+    "method": "gradient_ascent",
+    "workload": "a"
+}
