@@ -1,0 +1,25 @@
+{
+    "round_id": 9,
+    "new_forget_size": 462,
+    "cumulative_forget_size": 4328,
+    "remaining_size": 45672,
+    "unlearning_time_seconds": 17.073659300003783,
+    "cumulative_unlearning_time": 1054.3592701000161,
+    "forget_accuracy": 10.173160173160174,
+    "forget_loss": 2.3022634663107073,
+    "retain_accuracy": 9.962340164652304,
+    "retain_loss": 2.302733860994768,
+    "test_accuracy": 10.0,
+    "test_loss": 2.3027264225006103,
+    "parameter_norm": 26.144108485307964,
+    "parameter_distance": 38.37478873827846,
+    "relative_parameter_distance": 1.4678178358938379,
+    "som_score": 0.33424896001815796,
+    "health_state": "GREEN",
+    "chosen_primitive": "SSD",
+    "escalation_path": [
+        "SSD"
+    ],
+    "verification_passed": true,
+    "verification_time": 52.0702764000016
+}

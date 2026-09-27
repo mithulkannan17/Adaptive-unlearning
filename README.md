@@ -1,5 +1,9 @@
 # ASUC-SOM: Closed-Loop Adaptive Sequential Machine Unlearning
 
+**Project Overview**
+
+Adaptive Sequential Unlearning (ASUC‑SOM) is a research framework that enables continuous, compliant removal of data from deep neural networks. It dynamically profiles deletion requests, tracks subspace overlap with the **Subspace Orthogonality Metric (SOM)**, and routes to the most suitable unlearning primitive (SSD, SalUn, Gradient Ascent, or full retraining). The system protects model utility while guaranteeing forgetting effectiveness, making it ideal for GDPR‑style “right‑to‑be‑forgotten” scenarios.
+
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -7,6 +11,16 @@
 **ASUC-SOM** is an adaptive, closed-loop meta-controller for sequential machine unlearning on deep neural networks. In continuous compliance settings (such as GDPR "Right to be Forgotten"), deletion requests arrive sequentially across multiple rounds. Repeated application of static approximate unlearning primitives (e.g., Gradient Ascent, Selective Synaptic Dampening, or Saliency Unlearning) induces **parameter fatigue** and **capacity collapse**, causing catastrophic destruction of retain utility.
 
 ASUC-SOM addresses this by dynamically profiling incoming requests, monitoring the unlearning subspace via the **Subspace Orthogonality Metric (SOM)**, routing to the optimal primitive, and validating the unlearned model in a closed-loop verification pipeline with controlled escalation.
+
+### Unlearning in the Project
+
+We implement several unlearning primitives:
+- **Gradient Ascent** – directly maximizes loss on the forget set.
+- **Selective Synaptic Dampening (SSD)** – dampens weights with high influence on forgotten data.
+- **Saliency Unlearning (SalUn)** – updates top‑p% salient parameters with retain regularization.
+- **Exact Retraining** – full retraining on the remaining dataset (ground‑truth baseline).
+
+The controller selects the primitive based on the SOM health state (Green/Amber/Red) and request characteristics, ensuring a balance between forgetting efficacy and retained utility.
 
 ---
 
@@ -255,6 +269,42 @@ python test_counterfactual.py
 | **GA (Static)** | A | 20 | < 80.0% | < 75.0% | **Round 3** | ~900x |
 
 ---
+
+## Interactive Visualizer / Dashboard
+
+A dynamic web dashboard built with vanilla HTML, CSS, and JavaScript, visualizing:
+
+- Retention accuracy
+- Forgetting efficacy
+- Model drift
+- Compute time
+- Per‑round utility
+- Routing decisions
+- Subspace orthogonality (SOM) scores
+
+The dashboard connects to a lightweight Flask backend that streams live results from the `results/` JSON files after each benchmark round.
+
+### Running the visualizer
+
+```bash
+# Install Flask if not already installed
+pip install flask
+
+# Start the backend server (runs the dashboard)
+python -m visualizer.app
+```
+
+Open your browser at `http://localhost:5000` to explore the dashboard.
+
+## Commands
+
+| Purpose | Command |
+|---|---|
+| Run all unit tests | `python -m unittest discover -s . -p "test_*.py" -v` |
+| Run multi‑round sequential benchmark (20 rounds) | `python run_sequential.py --method asuc --workload a --rounds 20` |
+| Generate benchmark comparison report | `python evaluate.py --results_dir ./results` |
+| Start live backend server for visualizer | `python -m visualizer.app` |
+| Run unlearning scripts on CUDA | `python run_unlearning.py --method ssd --workload a --samples 500 --device cuda` |
 
 ## Citation
 
