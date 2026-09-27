@@ -1,0 +1,44 @@
+{
+    "dataset_size": 50000,
+    "summary": {
+        "dataset_size": 50000,
+        "active_size": 48514,
+        "forgotten_size": 1486,
+        "completed_rounds": 3
+    },
+    "rounds": [
+        {
+            "round_id": 1,
+            "new_forget_size": 500,
+            "cumulative_forget_size": 500,
+            "retain_size": 49500,
+            "dataset_size": 50000,
+            "callback": {
+                "round_id": 1,
+                "test_accuracy": 93.27
+            }
+        },
+        {
+            "round_id": 2,
+            "new_forget_size": 495,
+            "cumulative_forget_size": 995,
+            "retain_size": 49005,
+            "dataset_size": 50000,
+            "callback": {
+                "round_id": 2,
+                "test_accuracy": 93.38
+            }
+        },
+        {
+            "round_id": 3,
+            "new_forget_size": 491,
+            "cumulative_forget_size": 1486,
+            "retain_size": 48514,
+            "dataset_size": 50000,
+            "callback": {
+                "round_id": 3,
+                "test_accuracy": 93.38
+            }
+        }
+    ]
+}

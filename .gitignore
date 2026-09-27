@@ -1,0 +1,10 @@
+venv/
+# Datasets
+data/
+*.tar.gz
+*.zip
+
+# Model Checkpoints
+checkpoints/
+*.pth
+*.pt

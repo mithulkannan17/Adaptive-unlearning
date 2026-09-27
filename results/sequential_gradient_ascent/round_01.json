@@ -1,0 +1,33 @@
+{
+    "round_id": 1,
+    "new_forget_size": 500,
+    "cumulative_forget_size": 500,
+    "retain_size": 49500,
+    "unlearning_time_seconds": 12.821677300000374,
+    "new_forget": {
+        "forget_loss": 0.011607273362576961,
+        "forget_accuracy": 99.8,
+        "retain_loss": 0.018582616659276414,
+        "retain_accuracy": 99.58383838383838,
+        "test_loss": 0.22649060082435607,
+        "test_accuracy": 93.27,
+        "forget_size": 500.0,
+        "retain_size": 49500.0,
+        "parameter_norm": 31.645641439338497,
+        "parameter_distance": 0.007200195592875556,
+        "evaluation_time_seconds": 35.19338760000028
+    },
+    "cumulative_forget": {
+        "forget_loss": 0.01864316750317812,
+        "forget_accuracy": 99.8,
+        "retain_loss": 0.018844233146671094,
+        "retain_accuracy": 99.55555555555556,
+        "test_loss": 0.22649060082435607,
+        "test_accuracy": 93.27,
+        "forget_size": 500.0,
+        "retain_size": 49500.0,
+        "parameter_norm": 31.645641439338497,
+        "parameter_distance": 0.007200195592875556,
+        "evaluation_time_seconds": 27.304704500000298
+    }
+}

@@ -1,0 +1,171 @@
+{
+    "dataset_size": 50000,
+    "summary": {
+        "dataset_size": 50000,
+        "active_size": 40887,
+        "forgotten_size": 9113,
+        "completed_rounds": 20
+    },
+    "rounds": [
+        {
+            "round_id": 1,
+            "new_forget_size": 500,
+            "cumulative_forget_size": 500,
+            "retain_size": 49500,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 2,
+            "new_forget_size": 495,
+            "cumulative_forget_size": 995,
+            "retain_size": 49005,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 3,
+            "new_forget_size": 491,
+            "cumulative_forget_size": 1486,
+            "retain_size": 48514,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 4,
+            "new_forget_size": 486,
+            "cumulative_forget_size": 1972,
+            "retain_size": 48028,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 5,
+            "new_forget_size": 481,
+            "cumulative_forget_size": 2453,
+            "retain_size": 47547,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 6,
+            "new_forget_size": 476,
+            "cumulative_forget_size": 2929,
+            "retain_size": 47071,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 7,
+            "new_forget_size": 471,
+            "cumulative_forget_size": 3400,
+            "retain_size": 46600,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 8,
+            "new_forget_size": 466,
+            "cumulative_forget_size": 3866,
+            "retain_size": 46134,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 9,
+            "new_forget_size": 462,
+            "cumulative_forget_size": 4328,
+            "retain_size": 45672,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 10,
+            "new_forget_size": 457,
+            "cumulative_forget_size": 4785,
+            "retain_size": 45215,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 11,
+            "new_forget_size": 453,
+            "cumulative_forget_size": 5238,
+            "retain_size": 44762,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 12,
+            "new_forget_size": 448,
+            "cumulative_forget_size": 5686,
+            "retain_size": 44314,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 13,
+            "new_forget_size": 444,
+            "cumulative_forget_size": 6130,
+            "retain_size": 43870,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 14,
+            "new_forget_size": 439,
+            "cumulative_forget_size": 6569,
+            "retain_size": 43431,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 15,
+            "new_forget_size": 435,
+            "cumulative_forget_size": 7004,
+            "retain_size": 42996,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 16,
+            "new_forget_size": 430,
+            "cumulative_forget_size": 7434,
+            "retain_size": 42566,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 17,
+            "new_forget_size": 426,
+            "cumulative_forget_size": 7860,
+            "retain_size": 42140,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 18,
+            "new_forget_size": 422,
+            "cumulative_forget_size": 8282,
+            "retain_size": 41718,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 19,
+            "new_forget_size": 418,
+            "cumulative_forget_size": 8700,
+            "retain_size": 41300,
+            "dataset_size": 50000,
+            "callback": {}
+        },
+        {
+            "round_id": 20,
+            "new_forget_size": 413,
+            "cumulative_forget_size": 9113,
+            "retain_size": 40887,
+            "dataset_size": 50000,
+            "callback": {}
+        }
+    ]
+}
