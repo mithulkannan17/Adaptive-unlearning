@@ -77,6 +77,9 @@
             </header>
 
             <div class="view-container">
+                <!-- Data Source Banner -->
+                <div id="dataSourceBanner" style="display:none; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 16px; background:rgba(6,182,212,0.06); border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.78rem;"></div>
+
                 <!-- TAB 1: OVERVIEW DASHBOARD -->
                 <section class="tab-view active" id="tab-overview">
                     <!-- KPI Cards -->
@@ -114,6 +117,9 @@
                             <div class="kpi-meta"><span class="trend-up">⚡ Faster</span> than Full Retraining</div>
                         </div>
                     </div>
+
+                    <!-- Data source indicator -->
+                    <div id="kpiDataSource" class="kpi-source ref" style="margin: -8px 0 12px 4px;">~ Loading data source info...</div>
 
                     <!-- Charts Grid -->
                     <div class="charts-grid-2">
@@ -369,7 +375,9 @@
                                     <th>Test Acc</th>
                                     <th>Forget Acc</th>
                                     <th>Param Drift</th>
-                                    <th>Modified Params</th>
+                                    <th>Time (s)</th>
+                                    <th>Cumul. Forgot</th>
+                                    <th>Verif.</th>
                                     <th>MIA AUC</th>
                                 </tr>
                             </thead>

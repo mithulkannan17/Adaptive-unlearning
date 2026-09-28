@@ -1,0 +1,17 @@
+{
+    "round_id": 8,
+    "new_forget_size": 466,
+    "cumulative_forget_size": 3866,
+    "remaining_size": 46134,
+    "unlearning_time_seconds": 55.57964590000029,
+    "cumulative_unlearning_time": 443.50556830000005,
+    "forget_accuracy": 89.27038626609442,
+    "forget_loss": 1.0352639440814824,
+    "retain_accuracy": 89.5976936749469,
+    "retain_loss": 1.064422010403851,
+    "test_accuracy": 83.51,
+    "test_loss": 1.0349782249450683,
+    "parameter_norm": 31.643563476324413,
+    "parameter_distance": 0.33242933811897746,
+    "relative_parameter_distance": 0.010505433067539935
+}

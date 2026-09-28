@@ -43,19 +43,61 @@ function setupNavigation() {
     });
 }
 
-// Fetch benchmark and class data
+// Fetch benchmark and class data from REAL backend
 async function loadInitialData() {
     try {
         const benchRes = await fetch('/api/benchmarks');
         if (benchRes.ok) {
             benchmarkData = await benchRes.json();
+            renderDataSourceBanner();
         }
         const classRes = await fetch('/api/classes');
         if (classRes.ok) {
             classData = await classRes.json();
         }
     } catch (e) {
-        console.warn('Backend API offline, falling back to bundled dataset:', e);
+        console.warn('Backend API offline:', e);
+        showBannerError();
+    }
+}
+
+// Render a per-method data-source banner at the top of the page
+function renderDataSourceBanner() {
+    if (!benchmarkData) return;
+    const container = document.getElementById('dataSourceBanner');
+    if (!container) return;
+    container.innerHTML = '';
+    let anyReal = false;
+    Object.entries(benchmarkData).forEach(([key, item]) => {
+        const isReal = item.source && item.source.startsWith('real');
+        if (isReal) anyReal = true;
+        const rounds = item.rounds || [];
+        const lastReal = rounds[rounds.length - 1];
+        const collapsed = lastReal && lastReal.retain_acc < 20;
+        const pill = document.createElement('span');
+        pill.className = `source-pill ${collapsed ? 'source-collapsed' : isReal ? 'source-real' : 'source-ref'}`;
+        pill.title = item.source || '';
+        if (collapsed) {
+            pill.textContent = `${item.method}: COLLAPSED`;
+        } else {
+            pill.textContent = `${item.method}: ${isReal ? 'REAL' : 'ref'}`;
+        }
+        container.appendChild(pill);
+    });
+    container.style.display = 'flex';
+    if (anyReal) {
+        const notice = document.createElement('span');
+        notice.className = 'source-notice';
+        notice.textContent = 'Live experiment results — results/';
+        container.prepend(notice);
+    }
+}
+
+function showBannerError() {
+    const container = document.getElementById('dataSourceBanner');
+    if (container) {
+        container.innerHTML = '<span class="source-pill source-ref">Backend offline — no data loaded</span>';
+        container.style.display = 'flex';
     }
 }
 
@@ -175,15 +217,90 @@ async function simulateDecision(cardinality, entropy, somScore) {
 }
 
 // Render Overview KPI Stat Cards
+// For methods that collapsed (final acc <20%), we show the BEST round and warn clearly.
 function renderOverviewKPIs() {
     if (!benchmarkData || !benchmarkData.asuc) return;
-    const asucRounds = benchmarkData.asuc.rounds;
-    const latest = asucRounds[asucRounds.length - 1];
+    const asuc = benchmarkData.asuc;
+    const asucRounds = asuc.rounds || [];
 
-    document.getElementById('kpiRetainAcc').innerText = `${latest.retain_acc.toFixed(1)}%`;
-    document.getElementById('kpiTestAcc').innerText = `${latest.test_acc.toFixed(1)}%`;
-    document.getElementById('kpiForgetAcc').innerText = `${latest.forget_acc.toFixed(1)}%`;
-    document.getElementById('kpiSpeedup').innerText = `${benchmarkData.asuc.speedup_vs_retrain.toFixed(0)}x`;
+    // Find best-performing round (peak retain_acc, skip round 0 baseline)
+    const realRounds = asucRounds.filter(r => r.round > 0);
+    const bestRound = realRounds.reduce((best, r) =>
+        r.retain_acc > (best ? best.retain_acc : -1) ? r : best, null);
+    const lastRound = realRounds[realRounds.length - 1];
+    const collapsed = lastRound && lastRound.retain_acc < 20;
+
+    // Use best round for display if collapsed, else use final
+    const displayRound = collapsed ? bestRound : lastRound;
+
+    const summary = asuc.summary || {};
+    const finalRetain = collapsed
+        ? (bestRound ? bestRound.retain_acc : 0)
+        : (summary.final_retain_accuracy != null ? summary.final_retain_accuracy : (lastRound ? lastRound.retain_acc : 0));
+    const finalTest = collapsed
+        ? (bestRound ? bestRound.test_acc : 0)
+        : (summary.final_test_accuracy != null ? summary.final_test_accuracy : (lastRound ? lastRound.test_acc : 0));
+    const forgetAcc = displayRound ? displayRound.forget_acc : 0;
+
+    document.getElementById('kpiRetainAcc').innerText = `${parseFloat(finalRetain).toFixed(1)}%`;
+    document.getElementById('kpiTestAcc').innerText   = `${parseFloat(finalTest).toFixed(1)}%`;
+    document.getElementById('kpiForgetAcc').innerText = `${forgetAcc.toFixed(1)}%`;
+    document.getElementById('kpiSpeedup').innerText   = `${(asuc.speedup_vs_retrain || 0).toFixed(0)}x`;
+
+    // Data source / collapse indicator
+    const srcEl = document.getElementById('kpiDataSource');
+    if (srcEl) {
+        const isReal = asuc.source && asuc.source.startsWith('real');
+        if (collapsed) {
+            srcEl.textContent = `ASUC collapsed at Round ${lastRound.round} — showing peak performance (Round ${bestRound ? bestRound.round : '?'})`;
+            srcEl.className = 'kpi-source collapsed';
+        } else if (isReal) {
+            srcEl.textContent = `Live data — ${asuc.rounds_completed || realRounds.length} rounds completed`;
+            srcEl.className = 'kpi-source real';
+        } else {
+            srcEl.textContent = '~ Reference / illustrative data';
+            srcEl.className = 'kpi-source ref';
+        }
+    }
+
+    // Show collapse warning alert if needed
+    renderCollapseWarning(collapsed, bestRound, lastRound);
+}
+
+function renderCollapseWarning(collapsed, bestRound, lastRound) {
+    let alertEl = document.getElementById('collapseAlert');
+    if (!alertEl) {
+        alertEl = document.createElement('div');
+        alertEl.id = 'collapseAlert';
+        alertEl.style.cssText = [
+            'margin: 0 0 16px 0',
+            'padding: 12px 16px',
+            'border-radius: 10px',
+            'font-size: 0.82rem',
+            'line-height: 1.6',
+            'display: none',
+        ].join(';');
+        const kpiGrid = document.querySelector('.kpi-grid');
+        if (kpiGrid) kpiGrid.insertAdjacentElement('afterend', alertEl);
+    }
+    if (collapsed && bestRound && lastRound) {
+        alertEl.style.display = 'block';
+        alertEl.style.background = 'rgba(244,63,94,0.08)';
+        alertEl.style.border = '1px solid rgba(244,63,94,0.35)';
+        alertEl.style.color = '#fca5a5';
+        alertEl.innerHTML = [
+            '<strong style="color:#f43f5e">Model Collapse Detected</strong> &mdash; ',
+            'The ASUC-SOM experiment on Workload A collapsed starting at Round 2. ',
+            `Peak performance was at <strong>Round ${bestRound.round}</strong>: `,
+            `Retain = <strong>${bestRound.retain_acc.toFixed(1)}%</strong>, `,
+            `Test = <strong>${bestRound.test_acc.toFixed(1)}%</strong>. `,
+            'The model reached random-chance accuracy (~10%) from Round 2 onward. ',
+            '<strong>Root cause:</strong> Round 1 triggered <em>Retrain</em> escalation which completed but failed verification, leaving the model in a degraded state. ',
+            'Run a fresh experiment to get clean results.',
+        ].join('');
+    } else {
+        alertEl.style.display = 'none';
+    }
 }
 
 // Chart.js initialization & rendering
@@ -433,10 +550,22 @@ function renderRoundsTable() {
     const tbody = document.getElementById('roundsTableBody');
     if (!tbody || !benchmarkData || !benchmarkData.asuc) return;
 
+    const isReal = benchmarkData.asuc.source && benchmarkData.asuc.source.startsWith('real');
+
     tbody.innerHTML = '';
     benchmarkData.asuc.rounds.forEach(r => {
+        if (r.round === 0) return; // skip synthetic base round in table
         const tr = document.createElement('tr');
         const badgeClass = r.health === 'GREEN' ? 'badge-green' : (r.health === 'AMBER' ? 'badge-amber' : 'badge-red');
+        const timeCell = isReal && r.unlearning_time != null
+            ? `${r.unlearning_time.toFixed(1)}s`
+            : '—';
+        const cumForgotCell = isReal && r.cumulative_forget_size != null
+            ? r.cumulative_forget_size.toLocaleString()
+            : '—';
+        const verifCell = isReal && r.verification_passed != null
+            ? (r.verification_passed ? '<span style="color:#10b981">✓ PASS</span>' : '<span style="color:#f43f5e">✗ FAIL</span>')
+            : '—';
         tr.innerHTML = `
             <td>#${r.round}</td>
             <td><span class="badge-tag ${badgeClass}">${r.health}</span></td>
@@ -445,8 +574,10 @@ function renderRoundsTable() {
             <td>${r.retain_acc.toFixed(1)}%</td>
             <td>${r.test_acc.toFixed(1)}%</td>
             <td>${r.forget_acc.toFixed(1)}%</td>
-            <td>${(r.param_drift * 100).toFixed(2)}%</td>
-            <td>${r.selected_params.toLocaleString()}</td>
+            <td>${(r.param_drift).toFixed(4)}</td>
+            <td>${timeCell}</td>
+            <td>${cumForgotCell}</td>
+            <td>${verifCell}</td>
             <td>${r.mia_auc.toFixed(3)}</td>
         `;
         tbody.appendChild(tr);
