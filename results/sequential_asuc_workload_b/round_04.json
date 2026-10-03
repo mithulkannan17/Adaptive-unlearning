@@ -1,0 +1,26 @@
+{
+    "round_id": 4,
+    "new_forget_size": 500,
+    "cumulative_forget_size": 2000,
+    "remaining_size": 48000,
+    "unlearning_time_seconds": 705.4856248000006,
+    "cumulative_unlearning_time": 3650.9632583000002,
+    "forget_accuracy": 83.0,
+    "forget_loss": 0.4902184419631958,
+    "retain_accuracy": 97.96041666666666,
+    "retain_loss": 0.06824212031563123,
+    "test_accuracy": 91.56,
+    "test_loss": 0.2556400272846222,
+    "parameter_norm": 33.98286387942476,
+    "parameter_distance": 42.74989197066031,
+    "relative_parameter_distance": 1.257983792135413,
+    "som_score": 0.030509747564792633,
+    "health_state": "GREEN",
+    "chosen_primitive": "Retrain",
+    "escalation_path": [
+        "SalUn",
+        "Retrain"
+    ],
+    "verification_passed": false,
+    "verification_time": 37.330983200000446
+}

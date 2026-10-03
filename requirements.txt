@@ -9,3 +9,4 @@ seaborn
 pyyaml
 tqdm
 psutil
+tabulate

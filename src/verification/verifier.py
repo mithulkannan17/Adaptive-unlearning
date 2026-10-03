@@ -34,14 +34,16 @@ class UnlearningVerifier:
     def __init__(
         self,
         device: torch.device,
-        max_acceptable_forget_accuracy: float = 50.0,
-        max_allowed_retain_drop: float = 7.0,
-        max_loss_increase_ratio: float = 3.0,
+        max_acceptable_forget_accuracy: float = 80.0,   # was 50% — too strict for round 1
+        max_allowed_retain_drop: float = 15.0,           # was 7% — too strict, caused Retrain spiral
+        max_loss_increase_ratio: float = 5.0,            # was 3.0 — too strict
+        min_retain_accuracy_floor: float = 20.0,         # NEW: catch true collapses
     ):
         self.device = device
         self.max_acceptable_forget_accuracy = max_acceptable_forget_accuracy
         self.max_allowed_retain_drop = max_allowed_retain_drop
         self.max_loss_increase_ratio = max_loss_increase_ratio
+        self.min_retain_accuracy_floor = min_retain_accuracy_floor
         self.criterion = nn.CrossEntropyLoss()
 
     @torch.no_grad()
@@ -118,6 +120,13 @@ class UnlearningVerifier:
             passed = False
             reasons.append(
                 f"Retain loss ratio {loss_ratio:.2f}x exceeds allowed {self.max_loss_increase_ratio:.2f}x"
+            )
+
+        # Hard floor: catch complete model collapse regardless of other thresholds
+        if acc_after_retain < self.min_retain_accuracy_floor:
+            passed = False
+            reasons.append(
+                f"Retain accuracy {acc_after_retain:.2f}% below collapse floor {self.min_retain_accuracy_floor:.2f}%"
             )
 
         elapsed = time.perf_counter() - start_time

@@ -93,12 +93,22 @@ def main():
     df = pd.DataFrame(records)
     print("\n" + df.to_string(index=False))
 
+    try:
+        table_md = df.to_markdown(index=False)
+    except Exception:
+        # Fallback pure-python markdown table generator
+        cols = df.columns.tolist()
+        header = "| " + " | ".join(cols) + " |"
+        sep = "| " + " | ".join(["---"] * len(cols)) + " |"
+        rows = ["| " + " | ".join(str(val) for val in row) + " |" for row in df.values]
+        table_md = "\n".join([header, sep] + rows)
+
     md_content = [
         "# Machine Unlearning Benchmark Evaluation",
         "",
         "## Summary Comparison Table",
         "",
-        df.to_markdown(index=False),
+        table_md,
         "",
         "## Key Research Insights",
         "",

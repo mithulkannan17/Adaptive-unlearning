@@ -3,8 +3,8 @@
     "new_forget_size": 500,
     "cumulative_forget_size": 1500,
     "remaining_size": 48500,
-    "unlearning_time_seconds": 700.4958282000007,
-    "cumulative_unlearning_time": 2113.1800208000004,
+    "unlearning_time_seconds": 941.1111241999988,
+    "cumulative_unlearning_time": 2945.4776334999997,
     "forget_accuracy": 91.4,
     "forget_loss": 0.3164212818145752,
     "retain_accuracy": 98.02061855670104,
@@ -22,5 +22,5 @@
         "Retrain"
     ],
     "verification_passed": false,
-    "verification_time": 36.04778470000019
+    "verification_time": 45.073162099999536
 }

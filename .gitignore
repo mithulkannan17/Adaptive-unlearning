@@ -8,3 +8,8 @@ data/
 checkpoints/
 *.pth
 *.pt
+
+# Python Bytecode & Cache
+__pycache__/
+*.pyc
+*.pyo
