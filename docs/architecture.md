@@ -122,7 +122,8 @@ Tracks parameter movement geometry across deletion rounds $t = 1, 2, \dots$:
 After primitive execution produces candidate model $\theta_t^*$:
 
 1. Evaluates accuracy on validation forget subset $D_{f,\text{val}}$ and anchor retain subset $D_{r,\text{anchor}}$:
-   $$\text{PASS} \iff \left(\text{Acc}(D_{f,\text{val}}) \le 15.0\%\right) \land \left(\text{Acc}(D_{r,\text{anchor}}) \ge \text{Acc}_{\text{baseline}} - 3.0\%\right)$$
+   $$\text{PASS} \iff \left(\text{Acc}(D_{f,\text{val}}) \le 0.15\right) \land \left(\text{Acc}(D_{r,\text{anchor}}) \ge \text{Acc}_{\text{baseline}} - 0.03\right)$$
+   *(i.e., forget validation accuracy $\le 15.0\%$ and retain drop $\le 3.0\%$ relative to baseline).*
 2. **Escalation Path**:
    - Level 0 (Initial): Chosen primitive (usually SSD).
    - Level 1 (First Escalation): Revert checkpoint $\to$ Execute SalUn with increased retain weight ($\beta = 1.5$).
