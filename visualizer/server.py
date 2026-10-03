@@ -303,39 +303,39 @@ def _load_summary(results_subdir: Path) -> dict | None:
         return None
 
 
-def _find_best_dir_for_method(method_key: str) -> Path | None:
-    """Return the results sub-directory for a given method key.
-    Prefers *_workload_a variants; falls back to any matching prefix.
+def _find_best_dir_for_method(method_key: str, workload: str = "a") -> Path | None:
+    """Return the results sub-directory for a given method key and workload.
+    Prefers exact workload matches (e.g. *_workload_b); falls back to matching prefix.
     """
     if not RESULTS_DIR.exists():
         return None
     candidates = []
-    for prefix, key in DIR_METHOD_MAP.items():
-        if key != method_key:
-            continue
-        for p in RESULTS_DIR.iterdir():
-            if p.is_dir() and p.name.startswith(prefix):
-                candidates.append(p)
+    target_prefix = f"sequential_{method_key}"
+    workload_token = f"workload_{workload.lower()}"
+    for p in RESULTS_DIR.iterdir():
+        if p.is_dir() and p.name.startswith(target_prefix):
+            if workload_token in p.name.lower():
+                candidates.append((0, p))
+            else:
+                candidates.append((1, p))
     if not candidates:
         return None
-    # Prefer the directory with the most round files
-    candidates.sort(key=lambda p: len(list(p.glob("round_*.json"))), reverse=True)
-    return candidates[0]
+    candidates.sort(key=lambda x: (x[0], -len(list(x[1].glob("round_*.json")))))
+    return candidates[0][1]
 
 
-def _build_live_benchmarks() -> dict:
-    """Build the benchmark payload from REAL results, falling back to
-    reference data for any method that has no results on disk.
+def _build_live_benchmarks(workload: str = "a") -> dict:
+    """Build the benchmark payload from REAL results for the specified workload,
+    falling back to reference data for any method that has no results on disk.
     """
     output = {}
     for method_key, meta in METHOD_META.items():
-        best_dir = _find_best_dir_for_method(method_key)
+        best_dir = _find_best_dir_for_method(method_key, workload=workload)
         real_rounds = _load_rounds_from_dir(best_dir) if best_dir else None
         summary = _load_summary(best_dir) if best_dir else None
 
         if real_rounds:
             # Build the base-round (round 0) from the first real round header
-            # We infer round-0 baseline from the summary or a standard value
             base_retain = 99.4
             base_test = 93.44
             base_round = {
@@ -401,10 +401,12 @@ class VisualizerRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
+        query = parse_qs(parsed.query)
 
         if path == "/api/benchmarks":
-            # ── REAL DATA endpoint ──────────────────────────────────────────
-            self.send_json(_build_live_benchmarks())
+            # ── REAL DATA endpoint with optional ?workload=a|b|c ───────────
+            workload = query.get("workload", ["a"])[0]
+            self.send_json(_build_live_benchmarks(workload=workload))
 
         elif path == "/api/classes":
             self.send_json({
@@ -431,6 +433,34 @@ class VisualizerRequestHandler(SimpleHTTPRequestHandler):
 
         elif path == "/api/single_unlearning":
             self.send_json(self._load_single_runs())
+
+        elif path == "/api/paper_figures":
+            fig_dir = WORKSPACE_ROOT / "paper_figures"
+            figs = []
+            if fig_dir.exists():
+                for f in sorted(fig_dir.iterdir()):
+                    if f.is_file():
+                        figs.append({
+                            "name": f.name,
+                            "size_bytes": f.stat().st_size,
+                            "ext": f.suffix.lower(),
+                            "url": f"/paper_figures/{f.name}"
+                        })
+            self.send_json(figs)
+
+        elif path.startswith("/paper_figures/"):
+            fname = path.replace("/paper_figures/", "")
+            fig_path = WORKSPACE_ROOT / "paper_figures" / fname
+            if fig_path.exists() and fig_path.is_file():
+                content_type = "image/png" if fname.endswith(".png") else "application/pdf" if fname.endswith(".pdf") else "text/plain"
+                self.send_response(200)
+                self.send_header("Content-Type", content_type)
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                with open(fig_path, "rb") as fh:
+                    self.wfile.write(fh.read())
+            else:
+                self.send_error(404, f"Figure {fname} not found")
 
         else:
             super().do_GET()

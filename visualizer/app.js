@@ -5,13 +5,15 @@
 
 'use strict';
 
-// ── State ───────────────────────────────────────────────────
 let rawBenchmarkData = null;
 let benchmarkData    = null;
 let classData        = null;
 let charts           = {};
 let canvasAnimId     = null;
 let currentMode      = 'live'; // 'live' | 'reference'
+let currentWorkload  = 'a';    // 'a' | 'b' | 'c'
+let simDebounceTimer = null;
+let paperFiguresData = null;
 
 // Reference optimal benchmark data for comparison / reference mode
 const REFERENCE_DATA = {
@@ -75,6 +77,7 @@ function setupNav() {
         'tab-monitor':   'Live Experiment',
         'tab-som':       'SOM Subspace',
         'tab-benchmark': 'Method Benchmark',
+        'tab-figures':   'Paper Figures & LaTeX',
         'tab-simulator': 'Request Simulator',
         'tab-audit':     'Compliance Audit',
     };
@@ -99,6 +102,7 @@ function setupNav() {
 
             if (tabId === 'tab-som') initSubspaceCanvas();
             if (tabId === 'tab-simulator') updateSimulator();
+            if (tabId === 'tab-figures') renderPaperFigures();
         });
     });
 }
@@ -107,7 +111,7 @@ function setupNav() {
 async function loadData() {
     try {
         const [benchRes, classRes] = await Promise.all([
-            fetch('/api/benchmarks'),
+            fetch(`/api/benchmarks?workload=${currentWorkload}`),
             fetch('/api/classes'),
         ]);
         if (benchRes.ok) rawBenchmarkData = await benchRes.json();
@@ -131,10 +135,28 @@ function applyModeData() {
 
 function setDataMode(mode) {
     currentMode = mode;
-    document.getElementById('btnModeLive')?.classList.toggle('active', mode === 'live');
-    document.getElementById('btnModeRef')?.classList.toggle('active', mode === 'reference');
+    updatePillStyles();
     applyModeData();
     renderAll();
+}
+
+function setWorkload(wl) {
+    currentWorkload = wl;
+    currentMode = 'live';
+    updatePillStyles();
+    refreshData();
+}
+
+function updatePillStyles() {
+    const isRef = currentMode === 'reference';
+    document.getElementById('btnWorkloadA')?.classList.toggle('active', !isRef && currentWorkload === 'a');
+    document.getElementById('btnWorkloadB')?.classList.toggle('active', !isRef && currentWorkload === 'b');
+    document.getElementById('btnWorkloadC')?.classList.toggle('active', !isRef && currentWorkload === 'c');
+    document.getElementById('btnModeRef')?.classList.toggle('active', isRef);
+
+    document.getElementById('cardWorkloadA')?.classList.toggle('active-scenario', currentWorkload === 'a');
+    document.getElementById('cardWorkloadB')?.classList.toggle('active-scenario', currentWorkload === 'b');
+    document.getElementById('cardWorkloadC')?.classList.toggle('active-scenario', currentWorkload === 'c');
 }
 
 // ── Boot & Refresh ───────────────────────────────────────────
@@ -1025,6 +1047,97 @@ async function updateSimulator() {
             }
         } catch (_) {}
     }, 150);
+}
+
+// ── Paper Figures & LaTeX ──────────────────────────────────
+const FIGURE_DESCRIPTIONS = {
+    'fig1_sequential_accuracy.png': {
+        title: 'Fig. 1: Sequential Accuracy Trajectories',
+        desc: 'Retain and Test utility across 20 sequential rounds. Shows SSD collapse at Round 3 versus ASUC-SOM stability.'
+    },
+    'fig2_som_dynamics_drift.png': {
+        title: 'Fig. 2: Subspace Overlap & Parameter Drift',
+        desc: 'Dual-axis plot showing SOM projection overlap vs parameter drift ||Δθ|| with health thresholds.'
+    },
+    'fig3_speedup_pareto.png': {
+        title: 'Fig. 3: Compute Speedup Pareto Frontier',
+        desc: 'Retain Accuracy vs Compute Time speedup frontier comparing ASUC-SOM with static baselines.'
+    },
+    'fig4_class_erasure_radar.png': {
+        title: 'Fig. 4: Class-Wise Erasure & Retention',
+        desc: '10-class radar chart showing balanced class utility retention across all CIFAR-10 classes.'
+    },
+    'fig5_paper_composite_2x2.png': {
+        title: 'Fig. 5: Master Composite 2×2 Publication Figure',
+        desc: 'Comprehensive 4-panel composite visual incorporating all primary paper metrics for submission.'
+    }
+};
+
+async function renderPaperFigures() {
+    const grid = document.getElementById('paperFiguresGrid');
+    if (!grid) return;
+
+    try {
+        if (!paperFiguresData) {
+            const res = await fetch('/api/paper_figures');
+            if (res.ok) paperFiguresData = await res.json();
+        }
+
+        const pngFigs = (paperFiguresData || []).filter(f => f.ext === '.png');
+        grid.innerHTML = pngFigs.map(f => {
+            const info = FIGURE_DESCRIPTIONS[f.name] || {
+                title: f.name.replace('.png', '').replace(/_/g, ' ').toUpperCase(),
+                desc: 'Publication figure generated from benchmark run.'
+            };
+            const pdfName = f.name.replace('.png', '.pdf');
+            return `<div class="figure-card">
+                <div class="figure-preview-box" onclick="window.open('${f.url}', '_blank')">
+                    <img src="${f.url}" alt="${info.title}" loading="lazy" />
+                </div>
+                <div class="figure-info">
+                    <div class="figure-title">${info.title}</div>
+                    <div class="figure-desc">${info.desc}</div>
+                    <div class="figure-actions">
+                        <a class="btn-outline" href="${f.url}" target="_blank">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            View PNG
+                        </a>
+                        <a class="btn-outline" href="/paper_figures/${pdfName}" target="_blank" download>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download PDF (Vector)
+                        </a>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+
+        // Fetch LaTeX table
+        const codeEl = document.getElementById('latexTableCode');
+        if (codeEl) {
+            try {
+                const texRes = await fetch('/paper_figures/table1_latex_results.tex');
+                if (texRes.ok) {
+                    const text = await texRes.text();
+                    codeEl.textContent = text;
+                }
+            } catch (_) {}
+        }
+    } catch (e) {
+        console.warn('Error loading figures:', e);
+    }
+}
+
+function copyLatexTable() {
+    const codeEl = document.getElementById('latexTableCode');
+    if (!codeEl) return;
+    navigator.clipboard.writeText(codeEl.textContent).then(() => {
+        const btn = document.getElementById('btnCopyLatex');
+        if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        }
+    });
 }
 
 // ── Helpers ───────────────────────────────────────────────────

@@ -726,9 +726,105 @@ body {
   margin-bottom: 12px;
 }
 
-/* ── Bench Table ─────────────────────────────────────────── */
-.bench-table td:first-child { color: var(--text); font-weight: 700; font-family: var(--font); font-size: 0.9rem; }
-.bench-table td { white-space: normal; }
+/* ── Paper Figures Gallery ────────────────────────────────── */
+.figure-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+.figure-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--tr);
+}
+.figure-card:hover {
+  border-color: var(--border-act);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.figure-preview-box {
+  width: 100%;
+  height: 220px;
+  background: #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  position: relative;
+}
+.figure-preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.25s ease;
+}
+.figure-preview-box:hover img {
+  transform: scale(1.03);
+}
+.figure-info {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.figure-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+.figure-desc {
+  font-size: 0.8rem;
+  color: var(--text2);
+  line-height: 1.4;
+  flex: 1;
+}
+.figure-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--tr);
+}
+.btn-outline:hover {
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+.code-box {
+  background: #020617;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  color: #7dd3fc;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  max-height: 280px;
+  white-space: pre;
+}
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 1200px) {
