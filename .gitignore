@@ -13,3 +13,7 @@ checkpoints/
 __pycache__/
 *.pyc
 *.pyo
+
+# Temporary & Lock Files
+~$*
+scratch/
