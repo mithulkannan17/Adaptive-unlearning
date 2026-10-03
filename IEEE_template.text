@@ -1,14 +1,17 @@
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
+% Fix IEEE citation and graphics packages
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
+\usepackage{algorithm}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{url}
+\usepackage{microtype}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -17,10 +20,12 @@
 
 \title{ASUC-SOM: Subspace-Aware Adaptive Routing for Sequential Machine Unlearning under GDPR Article 17}
 
-\author{\IEEEauthorblockN{Mithul Kannan}
-\IEEEauthorblockA{\textit{Department of Computer Science and Engineering} \\
-\textit{Autonomous Systems and Machine Learning Laboratory}\\
-email: mithulkannan@ieee.org}
+\author{
+\IEEEauthorblockN{Mithul Kannan\IEEEauthorrefmark{1}, K. Anantha Krishna Rao\IEEEauthorrefmark{1}, M. M. Kaverappa\IEEEauthorrefmark{1}, M. Bharath Mani\IEEEauthorrefmark{1}, and Dr. Mayura Tapkire\IEEEauthorrefmark{2}}
+\IEEEauthorblockA{\IEEEauthorrefmark{1}Department of Computer Science and Engineering (Artificial Intelligence and Machine Learning)}
+\IEEEauthorblockA{\IEEEauthorrefmark{2}Associate Professor, Department of Computer Science and Engineering (Artificial Intelligence and Machine Learning)}
+\IEEEauthorblockA{\textit{The National Institute of Engineering}, Mysuru, Karnataka, India}
+\IEEEauthorblockA{Email: mithulkannan17@gmail.com}
 }
 
 \maketitle
@@ -30,7 +35,7 @@ Machine unlearning is predominantly evaluated under isolated, single-request ass
 \end{abstract}
 
 \begin{IEEEkeywords}
-machine unlearning, sequential deletion, GDPR Article 17, right to be forgotten, selective synaptic dampening, saliency, subspace monitoring, membership inference.
+machine unlearning, sequential deletion, GDPR Article 17, parameter fatigue, selective synaptic dampening, saliency, subspace monitoring, membership inference.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -79,10 +84,12 @@ At each round, the controller selects an unlearning primitive $a_t \in \{1, 2, 3
 \theta_t = \mathcal{U}_{a_t}\left(\theta_{t-1}, D_f^{(t)}, D_r^{(t)}\right) \label{eq:update}
 \end{equation}
 A candidate model $\theta_t$ is acceptable if and only if three verification conditions hold simultaneously:
-\begin{equation}
-\text{Acc}\left(D_{f,\text{val}}^{(t)}; \theta_t\right) \le \frac{1}{C}, \quad \text{Acc}\left(D_{r,\text{anchor}}^{(t)}; \theta_{t-1}\right) - \text{Acc}\left(D_{r,\text{anchor}}^{(t)}; \theta_t\right) \le \varepsilon, \quad |\text{AUC}_t - 0.5| \le \delta \label{eq:verification}
-\end{equation}
-where $1/C$ is the random chance threshold (10.0\% for CIFAR-10), $\varepsilon = 3.0\%$ is the maximum tolerable retain accuracy drop per round relative to the baseline checkpoint, and $\delta = 0.05$ bounds membership inference attack advantage. Exact retraining always satisfies \eqref{eq:verification} at maximum compute cost; the objective of ASUC-SOM is to minimize total execution time across the sequence while strictly enforcing \eqref{eq:verification} at every round.
+\begin{align}
+\text{Acc}\left(D_{f,\text{val}}^{(t)}; \theta_t\right) &\le \frac{1}{C}, \label{eq:verif1} \\
+\text{Acc}\left(D_{r,\text{anchor}}^{(t)}; \theta_{t-1}\right) - \text{Acc}\left(D_{r,\text{anchor}}^{(t)}; \theta_t\right) &\le \varepsilon, \label{eq:verif2} \\
+\left|\text{AUC}_{\text{MIA}}(\theta_t) - 0.5\right| &\le \delta \label{eq:verif3}
+\end{align}
+where $1/C$ is the random chance threshold (10.0\% for CIFAR-10), $\varepsilon = 3.0\%$ is the maximum tolerable retain accuracy drop per round relative to the baseline checkpoint, and $\delta = 0.05$ bounds membership inference attack advantage. Exact retraining always satisfies \eqref{eq:verif1}--\eqref{eq:verif3} at maximum compute cost; the objective of ASUC-SOM is to minimize total execution time across the sequence while strictly enforcing verification at every round.
 
 \section{The ASUC-SOM Framework}
 
@@ -90,7 +97,8 @@ where $1/C$ is the random chance threshold (10.0\% for CIFAR-10), $\varepsilon =
 Fig.~\ref{fig:arch} illustrates the sequential unlearning pipeline. When batch $D_f^{(t)}$ arrives, the request profiler computes batch cardinality and class entropy. The Subspace Overlap Monitor (SOM) evaluates gradient projection overlap against historical updates. The tiered router dispatches the request to the optimal primitive, and the verification gate validates amnesia and utility before committing the checkpoint.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=0.92\linewidth]{fig1_sequential_accuracy.png}}
+\centering
+\includegraphics[width=\columnwidth]{fig1_sequential_accuracy.png}
 \caption{Processing path for sequential deletion requests in ASUC-SOM. A failed verification check rolls back model weights to $\theta_{t-1}$ and escalates the request tier.}
 \label{fig:arch}
 \end{figure}
@@ -121,8 +129,9 @@ a = \begin{cases}
 with default threshold parameters $\tau_l = 0.40$, $\tau_h = 0.80$, and $\tau_H = 0.40$. Table~\ref{tab:policy} outlines the routing policy and speedup factors.
 
 \begin{table}[htbp]
-\caption{ASUC-SOM Routing Policy}
-\begin{center}
+\centering
+\caption{ASUC-SOM Tiered Routing Policy}
+\label{tab:policy}
 \begin{tabular}{cclc}
 \toprule
 \textbf{Tier} & \textbf{Trigger Condition} & \textbf{Unlearning Primitive} & \textbf{Speedup} \\
@@ -132,12 +141,10 @@ with default threshold parameters $\tau_l = 0.40$, $\tau_h = 0.80$, and $\tau_H 
 3 & $s \ge 0.80$ or Escalation & Exact Retraining on $D_r^{(t)}$ & $1\times$ \\
 \bottomrule
 \end{tabular}
-\label{tab:policy}
-\end{center}
 \end{table}
 
 \subsection{Closed-Loop Verification and Rollback Gate}
-Following primitive execution, candidate model $\theta_t^*$ is evaluated on held-out validation sets. If all conditions in \eqref{eq:verification} pass, the model is committed. If any check fails, weights are restored to pre-round checkpoint $\theta_{t-1}$, the tier index is incremented ($a \leftarrow a + 1$), and the request is re-executed under regularized or exact retraining tiers.
+Following primitive execution, candidate model $\theta_t^*$ is evaluated on held-out validation sets. If all conditions in \eqref{eq:verif1}--\eqref{eq:verif3} pass, the model is committed. If any check fails, weights are restored to pre-round checkpoint $\theta_{t-1}$, the tier index is incremented ($a \leftarrow a + 1$), and the request is re-executed under regularized or exact retraining tiers.
 
 \subsection{Tamper-Evident Compliance Audit Trail}
 The compliance engine records a hash-chained JSON audit record for every batch:
@@ -146,30 +153,33 @@ H_t = \text{SHA-256}\left( H_{t-1} \,\|\, t \,\|\, |D_f^{(t)}| \,\|\, s_t \,\|\,
 \end{equation}
 providing verifiable proof of GDPR Article 17 amnesia compliance.
 
-\begin{table}[htbp]
-\caption{Algorithm 1: ASUC-SOM Execution Routine}
-\begin{center}
-\begin{tabular}{|l|}
-\hline
-\textbf{Input:} Model $\theta_{t-1}$, Basis $Q_k$, Forget set $D_f^{(t)}$, Retain data $D_r^{(t)}$ \\
-\textbf{Params:} $\tau_l = 0.40, \tau_h = 0.80, \tau_H = 0.40$ \\
-1: $\theta_{\text{prev}} \leftarrow \theta_{t-1}$ \quad (Preserve rollback checkpoint) \\
-2: Compute batch cardinality $n = |D_f^{(t)}|$ and class entropy $h$ via \eqref{eq:entropy} \\
-3: Compute forget gradient $g_t = \nabla_\theta \mathcal{L}(D_f^{(t)}; \theta_{\text{prev}})$ \\
-4: Compute subspace overlap $s = \|Q_k^T g_t\|_2 / \|g_t\|_2$ via \eqref{eq:som} \\
-5: Determine primitive tier $a \leftarrow \text{Route}(s, h)$ via \eqref{eq:router} \\
-6: \textbf{repeat} \\
-7: \quad $\theta^* \leftarrow \text{ExecutePrimitive}(a, \theta_{\text{prev}}, D_f^{(t)}, D_r^{(t)})$ \\
-8: \quad \textbf{if} $\text{Verify}(\theta^*)$ passes via \eqref{eq:verification} \textbf{then} \textbf{break} \\
-9: \quad $\theta^* \leftarrow \theta_{\text{prev}}; \quad a \leftarrow a + 1$ \quad (Rollback and escalate) \\
-10: \textbf{until} $a > 3$ \\
-11: Update orthonormal basis $Q_k \leftarrow \text{UpdateBasis}(Q_k, \theta^* - \theta_{\text{prev}})$ \\
-12: Append hash-chained audit record $H_t$; \textbf{return} $\theta_t = \theta^*, Q_k$ \\
-\hline
-\end{tabular}
-\label{tab:alg}
-\end{center}
-\end{table}
+\begin{algorithm}[htbp]
+\caption{ASUC-SOM Sequential Unlearning Routine}
+\label{alg:asuc}
+\begin{algorithmic}[1]
+\REQUIRE Base model $\theta_{t-1}$, basis $Q_k$, forget set $D_f^{(t)}$, retain data $D_r^{(t)}$
+\ENSURE Updated model $\theta_t$, updated basis $Q_k$, audit record $H_t$
+\STATE $\theta_{\text{prev}} \leftarrow \theta_{t-1}$ \COMMENT{Preserve rollback checkpoint}
+\STATE Compute batch cardinality $n = |D_f^{(t)}|$ and class entropy $h$ via \eqref{eq:entropy}
+\STATE Compute forget gradient $g_t = \nabla_\theta \mathcal{L}(D_f^{(t)}; \theta_{\text{prev}})$
+\STATE Compute subspace overlap $s = \|Q_k^T g_t\|_2 / \|g_t\|_2$ via \eqref{eq:som}
+\STATE Determine primitive tier $a \leftarrow \text{Route}(s, h)$ via \eqref{eq:router}
+\REPEAT
+    \STATE $\theta^* \leftarrow \text{ExecutePrimitive}(a, \theta_{\text{prev}}, D_f^{(t)}, D_r^{(t)})$
+    \IF{$\text{Verify}(\theta^*)$ passes via \eqref{eq:verif1}--\eqref{eq:verif3}}
+        \STATE \textbf{break}
+    \ENDIF
+    \STATE $\theta^* \leftarrow \theta_{\text{prev}}; \quad a \leftarrow a + 1$ \COMMENT{Rollback and escalate}
+\UNTIL{$a > 3$}
+\IF{$a = 3$}
+    \STATE Reset basis $Q_k \leftarrow \emptyset$ \COMMENT{Clean retraining reset}
+\ELSE
+    \STATE $Q_k \leftarrow \text{UpdateBasis}(Q_k, \theta^* - \theta_{\text{prev}})$
+\ENDIF
+\STATE Append hash-chained audit record $H_t$
+\STATE \textbf{return} $\theta_t = \theta^*, Q_k$
+\end{algorithmic}
+\end{algorithm}
 
 \section{Experimental Evaluation Design}
 \textbf{Model \& Dataset:} We evaluate on CIFAR-10 \cite{b11} (50,000 training images, 10,000 test images, 10 classes) using a ResNet-18 architecture (11,173,962 parameters). The base model achieves 93.44\% test accuracy and 99.40\% train retain accuracy after 200 epochs of SGD optimization ($\eta=0.1$, momentum 0.9, weight decay $5\times 10^{-4}$, cosine annealing).
@@ -196,8 +206,9 @@ If only one round in twenty escalates to exact retraining ($f_3 = 0.05$), the st
 Table~\ref{tab:results} summarizes comparative performance across 20 sequential deletion rounds under Workload A.
 
 \begin{table*}[htbp]
+\centering
 \caption{Sequential Machine Unlearning Benchmark Matrix on CIFAR-10 ResNet-18 (Workload A, 20 Rounds, 10,000 Deleted Samples)}
-\begin{center}
+\label{tab:results}
 \begin{tabular}{lcccccc}
 \toprule
 \textbf{Method} & \textbf{Collapse Round} & \textbf{Final Retain Acc. (\%)} & \textbf{Final Test Acc. (\%)} & \textbf{Forget Acc. (\%)} & \textbf{MIA AUC} & \textbf{Total Time (s)} \\
@@ -209,12 +220,11 @@ Exact Retraining (Gold Standard) & None ($>20$ Stable) & 99.10 & 92.70 & 9.20 & 
 \textbf{ASUC-SOM (Ours)} & \textbf{None ($>20$ Stable)} & \textbf{97.19} & \textbf{90.89} & \textbf{10.20} & \textbf{0.546} & \textbf{15,655.4} \\
 \bottomrule
 \end{tabular}
-\label{tab:results}
-\end{center}
 \end{table*}
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=0.95\linewidth]{fig2_som_dynamics_drift.png}}
+\centering
+\includegraphics[width=\columnwidth]{fig2_som_dynamics_drift.png}
 \caption{Subspace Overlap Metric (SOM) trajectory and cumulative parameter drift $\|\Delta\theta\|_2$ across sequential deletion rounds. Green, Amber, and Red health states govern dynamic tier dispatch.}
 \label{fig:som_drift}
 \end{figure}
@@ -224,8 +234,9 @@ As shown in Table~\ref{tab:results}, static SSD undergoes catastrophic represent
 In contrast, ASUC-SOM continuously tracks directional gradient overlap via SOM (Fig.~\ref{fig:som_drift}). When the overlap score enters the Amber caution zone ($s \ge 0.40$), the controller dynamically shifts execution to Tier 2 (SalUn), successfully preserving 97.19\% retain accuracy and 90.89\% test generalization across all 20 rounds.
 
 \begin{table}[htbp]
+\centering
 \caption{Design Comparison: Static Unlearning vs. ASUC-SOM}
-\begin{center}
+\label{tab:comparison}
 \begin{tabular}{lll}
 \toprule
 \textbf{Dimension} & \textbf{Static Baselines (SSD / SalUn / GA)} & \textbf{ASUC-SOM (Ours)} \\
@@ -237,8 +248,6 @@ Safety Verification & No post-update check & Closed-loop verify, rollback, escal
 Auditability & Ad-hoc benchmark logs & Hash-chained per-batch audit records \\
 \bottomrule
 \end{tabular}
-\label{tab:comparison}
-\end{center}
 \end{table}
 
 \subsection{Multi-Workload Stress Testing (Workloads B and C)}
