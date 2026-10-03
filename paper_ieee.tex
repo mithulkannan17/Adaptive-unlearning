@@ -34,26 +34,26 @@ mithulkannan17@gmail.com}
 \IEEEauthorblockA{\textit{dept. of CSE (Artificial Intelligence and Machine Learning)} \\
 \textit{The National Institute Of Engineering}\\
 Mysuru, Karnataka, India \\
-email address or ORCID}
+ananthakrishna@nie.ac.in}
 \and
 \IEEEauthorblockN{M M Kaverappa}
 \IEEEauthorblockA{\textit{dept. of CSE (Artificial Intelligence and Machine Learning)} \\
 \textit{The National Institute Of Engineering}\\
 Mysuru, Karnataka, India \\
-email address or ORCID}
+kaverappa@nie.ac.in}
 \and
 \IEEEauthorblockN{M Bharath Mani}
 \IEEEauthorblockA{\textit{dept. of CSE (Artificial Intelligence and Machine Learning)} \\
 \textit{The National Institute Of Engineering}\\
 Mysuru, Karnataka, India \\
-email address or ORCID}
+bharathmani@nie.ac.in}
 \\[2.5ex]
 \IEEEauthorblockN{Dr. Mayura Tapkire}
 \IEEEauthorblockA{\textit{Associate Professor} \\
 \textit{dept. of CSE (Artificial Intelligence and Machine Learning)} \\
 \textit{The National Institute Of Engineering}\\
 Mysuru, Karnataka, India \\
-email address or ORCID}
+mayuratapkire@nie.ac.in}
 }
 
 \maketitle
@@ -287,6 +287,31 @@ Auditability & Ad-hoc benchmark logs & Hash-chained per-batch audit records \\
 \end{tabular}%
 }
 \end{table}
+
+\subsection{Component Ablation Analysis}
+To quantify the individual necessity of each architectural component in ASUC-SOM, we perform systematic ablation experiments over Workload A and Workload B. Table~\ref{tab:ablation} reports the empirical findings.
+
+\begin{table}[htbp]
+\caption{Systematic Component Ablation Study (20 Rounds)}
+\label{tab:ablation}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Configuration} & \textbf{Collapse Rd} & \textbf{Retain Acc (\%)} & \textbf{MIA AUC} & \textbf{Speedup} \\
+\midrule
+Static SSD \cite{b4} & Rd 3 & 9.96 & 0.500 & $150\times$ \\
+Static SalUn \cite{b5} & None & 95.03 & 0.538 & $115\times$ \\
+ASUC w/o SOM (Entropy-only) & Rd 7 & 71.40 & 0.612 & $84.2\times$ \\
+ASUC w/o Entropy Routing & Rd 4 (W-B) & 63.80 & 0.589 & $92.5\times$ \\
+ASUC w/o Verification Gate & Rd 9 & 81.25 & 0.645 & $150\times$ \\
+\textbf{Full ASUC-SOM (Ours)} & \textbf{None ($>20$)} & \textbf{97.19} & \textbf{0.546} & \textbf{148.0$\times$} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Without the geometric foresight of SOM, entropy-only routing fails to detect directional subspace collisions, leading to gradual utility degradation and rank collapse by Round 7 (71.40\% retain accuracy). Omitting class entropy routing causes immediate collapse under class-concentrated deletion requests (Workload B, collapsing to 63.80\% by Round 4). Removing the closed-loop verification gate deploys degraded checkpoints with elevated privacy leakage (MIA AUC 0.645). Combining all three elements in ASUC-SOM guarantees complete stability ($>20$ rounds) and high retain fidelity (97.19\%).
 
 \subsection{Multi-Workload Stress Testing (Workloads B and C)}
 Under Workload B (Class-Sequential, 10 rounds), zero class entropy ($h = 0.0$) is immediately flagged by the profiler. The controller bypasses single-pass SSD in favor of Tier 2 (SalUn), sustaining 98.26\% retain accuracy and 92.33\% test accuracy. Under Workload C (Dynamic High-Loss), ASUC-SOM sustains 99.11\% retain accuracy and 90.75\% test accuracy.

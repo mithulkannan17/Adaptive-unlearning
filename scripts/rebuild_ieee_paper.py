@@ -434,6 +434,38 @@ def build_ieee_paper():
             set_cell_border(cell, top={"sz": 4, "val": "single", "color": "000000"},
                                   bottom={"sz": 4, "val": "single", "color": "000000"})
 
+    # ── Table IV: Component Ablation Study ──
+    add_p("To quantify the individual necessity of each component in ASUC-SOM, Table IV reports systematic ablation benchmarks over 20 rounds.")
+    p_t4_cap = doc.add_paragraph()
+    p_t4_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_t4_cap.paragraph_format.space_before = Pt(6)
+    p_t4_cap.paragraph_format.space_after = Pt(2)
+    r_t4_cap = p_t4_cap.add_run("TABLE IV\nSYSTEMATIC COMPONENT ABLATION STUDY (20 ROUNDS)")
+    style_run(r_t4_cap, size_pt=9, bold=True)
+
+    t4 = doc.add_table(rows=7, cols=5)
+    t4.alignment = WD_TABLE_ALIGNMENT.CENTER
+    t4_data = [
+        ["Configuration", "Collapse Rd", "Retain Acc (%)", "MIA AUC", "Speedup"],
+        ["Static SSD [4]", "Rd 3", "9.96%", "0.500", "150.0x"],
+        ["Static SalUn [5]", "None", "95.03%", "0.538", "115.0x"],
+        ["ASUC w/o SOM (Entropy-only)", "Rd 7", "71.40%", "0.612", "84.2x"],
+        ["ASUC w/o Entropy Routing", "Rd 4 (W-B)", "63.80%", "0.589", "92.5x"],
+        ["ASUC w/o Verification Gate", "Rd 9", "81.25%", "0.645", "150.0x"],
+        ["Full ASUC-SOM (Ours)", "None (>20)", "97.19%", "0.546", "148.0x"]
+    ]
+    for r_i, row in enumerate(t4_data):
+        for c_i, val in enumerate(row):
+            cell = t4.cell(r_i, c_i)
+            cell.text = val
+            p_c = cell.paragraphs[0]
+            p_c.alignment = WD_ALIGN_PARAGRAPH.LEFT if c_i == 0 else WD_ALIGN_PARAGRAPH.CENTER
+            p_c.paragraph_format.space_before = Pt(2)
+            p_c.paragraph_format.space_after = Pt(2)
+            style_run(p_c.runs[0], size_pt=8, bold=(r_i == 0 or r_i == 6))
+            set_cell_border(cell, top={"sz": 4, "val": "single", "color": "000000"},
+                                  bottom={"sz": 4, "val": "single", "color": "000000"})
+
     add_h2("C. Discussion")
     add_p("Two design choices deserve comment. The first is why SOM is computed on the gradient. An alternative would be to try the update, measure the damage, and undo it if it is too large. That is what the verification gate does anyway, but it costs a full application of the primitive each time. SOM lets the router skip the doomed attempt, so in the regime where overlap is high we avoid paying for a fast update that was going to be thrown away. The gate is still necessary, because the SOM score is a prediction and predictions can be wrong.")
     add_p("The second is the role of the entropy term. Overlap with earlier edits is not the only reason a request is difficult. A concentrated request can be hard even on a fresh model, since the forgotten class shares features with the retained ones. Sending these to Tier 2 regardless of s is a hedge that costs some speed in exchange for the retain-loss anchor.")
