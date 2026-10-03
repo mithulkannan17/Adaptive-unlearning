@@ -47,7 +47,7 @@ email address or ORCID}
 \textit{The National Institute Of Engineering}\\
 Mysuru, Karnataka, India \\
 email address or ORCID}
-\and
+\\[2.5ex]
 \IEEEauthorblockN{Sumanth C S}
 \IEEEauthorblockA{\textit{Assistant Professor} \\
 \textit{dept. of CSE (Artificial Intelligence and Machine Learning)} \\
