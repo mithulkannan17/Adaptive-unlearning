@@ -1,6 +1,6 @@
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
-% Fix IEEE citation and graphics packages
+% Package imports for IEEEtran compatibility
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
@@ -10,8 +10,12 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{tabularx}
 \usepackage{url}
 \usepackage{microtype}
+
+\DeclareMathOperator{\Acc}{Acc}
+\DeclareMathOperator{\AUC}{AUC}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -21,11 +25,10 @@
 \title{ASUC-SOM: Subspace-Aware Adaptive Routing for Sequential Machine Unlearning under GDPR Article 17}
 
 \author{
-\IEEEauthorblockN{Mithul Kannan\IEEEauthorrefmark{1}, K. Anantha Krishna Rao\IEEEauthorrefmark{1}, M. M. Kaverappa\IEEEauthorrefmark{1}, M. Bharath Mani\IEEEauthorrefmark{1}, and Dr. Mayura Tapkire\IEEEauthorrefmark{2}}
-\IEEEauthorblockA{\IEEEauthorrefmark{1}Department of Computer Science and Engineering (Artificial Intelligence and Machine Learning)}
-\IEEEauthorblockA{\IEEEauthorrefmark{2}Associate Professor, Department of Computer Science and Engineering (Artificial Intelligence and Machine Learning)}
-\IEEEauthorblockA{\textit{The National Institute of Engineering}, Mysuru, Karnataka, India}
-\IEEEauthorblockA{Email: mithulkannan17@gmail.com}
+\IEEEauthorblockN{Mithul Kannan\IEEEauthorrefmark{1}, K. Anantha Krishna Rao\IEEEauthorrefmark{1}, M. M. Kaverappa\IEEEauthorrefmark{1}, M. Bharath Mani\IEEEauthorrefmark{1}, Dr. Mayura Tapkire\IEEEauthorrefmark{2}}
+\IEEEauthorblockA{\IEEEauthorrefmark{1}\IEEEauthorrefmark{2}Department of Computer Science and Engineering (Artificial Intelligence and Machine Learning)\\
+\textit{The National Institute of Engineering}, Mysuru, Karnataka, India\\
+Email: \IEEEauthorrefmark{1}mithulkannan17@gmail.com, \IEEEauthorrefmark{2}mayuratapkire@nie.ac.in}
 }
 
 \maketitle
@@ -55,7 +58,7 @@ Three structural failure modes arise when static unlearning methods are applied 
 To overcome these limitations, we introduce ASUC-SOM (Adaptive Sequential Unlearning Controller with Subspace Overlap Monitoring). Our contributions are:
 \begin{itemize}
     \item \textbf{Subspace Overlap Monitor (SOM):} We formulate a geometric monitor that maintains an orthonormal basis $Q_k$ of historical update trajectories, computing gradient projection overlap before weights are modified to predict parameter fatigue.
-    \item \textbf{Multi-Tier Dynamic Router:} We design a three-tier dispatch policy that maps SOM overlap scores and normalized class entropy $H(c)$ to the optimal unlearning primitive (SSD, SalUn, or exact retraining).
+    \item \textbf{Multi-Tier Dynamic Router:} We design a three-tier dispatch policy that maps SOM overlap scores and normalized class entropy $h$ to the optimal unlearning primitive (SSD, SalUn, or exact retraining).
     \item \textbf{Closed-Loop Self-Healing Gate:} We implement an automated verification gate with checkpoint rollback and tier escalation that prevents corrupted weights from leaving the system.
     \item \textbf{Comprehensive Sequential Benchmark:} Evaluated across 20 sequential deletion rounds on CIFAR-10 ResNet-18 (10,000 deleted samples), ASUC-SOM sustains 97.19\% retain accuracy and 90.89\% test accuracy without experiencing rank collapse.
 \end{itemize}
@@ -85,9 +88,9 @@ At each round, the controller selects an unlearning primitive $a_t \in \{1, 2, 3
 \end{equation}
 A candidate model $\theta_t$ is acceptable if and only if three verification conditions hold simultaneously:
 \begin{align}
-\text{Acc}\left(D_{f,\text{val}}^{(t)}; \theta_t\right) &\le \frac{1}{C}, \label{eq:verif1} \\
-\text{Acc}\left(D_{r,\text{anchor}}^{(t)}; \theta_{t-1}\right) - \text{Acc}\left(D_{r,\text{anchor}}^{(t)}; \theta_t\right) &\le \varepsilon, \label{eq:verif2} \\
-\left|\text{AUC}_{\text{MIA}}(\theta_t) - 0.5\right| &\le \delta \label{eq:verif3}
+\Acc\left(D_{f,\text{val}}^{(t)}; \theta_t\right) &\le \frac{1}{C}, \label{eq:verif1} \\
+\Acc\left(D_{r,\text{anchor}}^{(t)}; \theta_{t-1}\right) - \Acc\left(D_{r,\text{anchor}}^{(t)}; \theta_t\right) &\le \varepsilon, \label{eq:verif2} \\
+\left|\AUC_{\text{MIA}}(\theta_t) - 0.5\right| &\le \delta \label{eq:verif3}
 \end{align}
 where $1/C$ is the random chance threshold (10.0\% for CIFAR-10), $\varepsilon = 3.0\%$ is the maximum tolerable retain accuracy drop per round relative to the baseline checkpoint, and $\delta = 0.05$ bounds membership inference attack advantage. Exact retraining always satisfies \eqref{eq:verif1}--\eqref{eq:verif3} at maximum compute cost; the objective of ASUC-SOM is to minimize total execution time across the sequence while strictly enforcing verification at every round.
 
@@ -129,18 +132,20 @@ a = \begin{cases}
 with default threshold parameters $\tau_l = 0.40$, $\tau_h = 0.80$, and $\tau_H = 0.40$. Table~\ref{tab:policy} outlines the routing policy and speedup factors.
 
 \begin{table}[htbp]
-\centering
 \caption{ASUC-SOM Tiered Routing Policy}
 \label{tab:policy}
+\centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{cclc}
 \toprule
 \textbf{Tier} & \textbf{Trigger Condition} & \textbf{Unlearning Primitive} & \textbf{Speedup} \\
 \midrule
-1 & $s < 0.40$ and $h \ge 0.40$ & Selective Synaptic Dampening (SSD) \cite{b4} & $\approx 150\times$ \\
-2 & $0.40 \le s < 0.80$ or $h < 0.40$ & Saliency Masking + Retain Penalty (SalUn) \cite{b5} & $\approx 115\times$ \\
-3 & $s \ge 0.80$ or Escalation & Exact Retraining on $D_r^{(t)}$ & $1\times$ \\
+1 & $s < 0.40 \land h \ge 0.40$ & Synaptic Dampening (SSD) \cite{b4} & $\approx 150\times$ \\
+2 & $s \ge 0.40 \lor h < 0.40$ & Saliency Masking (SalUn) \cite{b5} & $\approx 115\times$ \\
+3 & $s \ge 0.80$ / Escalation & Exact Retraining on $D_r^{(t)}$ & $1\times$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \subsection{Closed-Loop Verification and Rollback Gate}
@@ -149,19 +154,23 @@ Following primitive execution, candidate model $\theta_t^*$ is evaluated on held
 \subsection{Tamper-Evident Compliance Audit Trail}
 The compliance engine records a hash-chained JSON audit record for every batch:
 \begin{equation}
-H_t = \text{SHA-256}\left( H_{t-1} \,\|\, t \,\|\, |D_f^{(t)}| \,\|\, s_t \,\|\, a_t \,\|\, \text{Acc}_f \,\|\, \text{Acc}_r \,\|\, \text{Hash}(\theta_t) \right)
+\begin{aligned}
+H_t = \text{SHA-256}\big( &H_{t-1} \,\|\, t \,\|\, |D_f^{(t)}| \,\|\, s_t \\
+&\|\, a_t \,\|\, \Acc_f \,\|\, \Acc_r \,\|\, \text{Hash}(\theta_t)\big)
+\end{aligned}
 \end{equation}
 providing verifiable proof of GDPR Article 17 amnesia compliance.
 
 \begin{algorithm}[htbp]
 \caption{ASUC-SOM Sequential Unlearning Routine}
 \label{alg:asuc}
+\small
 \begin{algorithmic}[1]
-\REQUIRE Base model $\theta_{t-1}$, basis $Q_k$, forget set $D_f^{(t)}$, retain data $D_r^{(t)}$
+\REQUIRE Model $\theta_{t-1}$, basis $Q_k$, forget set $D_f^{(t)}$, retain set $D_r^{(t)}$
 \ENSURE Updated model $\theta_t$, updated basis $Q_k$, audit record $H_t$
-\STATE $\theta_{\text{prev}} \leftarrow \theta_{t-1}$ \COMMENT{Preserve rollback checkpoint}
-\STATE Compute batch cardinality $n = |D_f^{(t)}|$ and class entropy $h$ via \eqref{eq:entropy}
-\STATE Compute forget gradient $g_t = \nabla_\theta \mathcal{L}(D_f^{(t)}; \theta_{\text{prev}})$
+\STATE $\theta_{\text{prev}} \leftarrow \theta_{t-1}$ \hfill \COMMENT{Save rollback checkpoint}
+\STATE Compute cardinality $n = |D_f^{(t)}|$ and class entropy $h$ via \eqref{eq:entropy}
+\STATE Compute gradient $g_t = \nabla_\theta \mathcal{L}(D_f^{(t)}; \theta_{\text{prev}})$
 \STATE Compute subspace overlap $s = \|Q_k^T g_t\|_2 / \|g_t\|_2$ via \eqref{eq:som}
 \STATE Determine primitive tier $a \leftarrow \text{Route}(s, h)$ via \eqref{eq:router}
 \REPEAT
@@ -169,10 +178,10 @@ providing verifiable proof of GDPR Article 17 amnesia compliance.
     \IF{$\text{Verify}(\theta^*)$ passes via \eqref{eq:verif1}--\eqref{eq:verif3}}
         \STATE \textbf{break}
     \ENDIF
-    \STATE $\theta^* \leftarrow \theta_{\text{prev}}; \quad a \leftarrow a + 1$ \COMMENT{Rollback and escalate}
+    \STATE $\theta^* \leftarrow \theta_{\text{prev}}; \quad a \leftarrow a + 1$ \hfill \COMMENT{Rollback \& escalate}
 \UNTIL{$a > 3$}
 \IF{$a = 3$}
-    \STATE Reset basis $Q_k \leftarrow \emptyset$ \COMMENT{Clean retraining reset}
+    \STATE Reset basis $Q_k \leftarrow \emptyset$ \hfill \COMMENT{Clean retraining reset}
 \ELSE
     \STATE $Q_k \leftarrow \text{UpdateBasis}(Q_k, \theta^* - \theta_{\text{prev}})$
 \ENDIF
@@ -205,10 +214,11 @@ If only one round in twenty escalates to exact retraining ($f_3 = 0.05$), the st
 \subsection{Sequential Performance over 20 Rounds (Workload A)}
 Table~\ref{tab:results} summarizes comparative performance across 20 sequential deletion rounds under Workload A.
 
-\begin{table*}[htbp]
-\centering
+\begin{table*}[t]
 \caption{Sequential Machine Unlearning Benchmark Matrix on CIFAR-10 ResNet-18 (Workload A, 20 Rounds, 10,000 Deleted Samples)}
 \label{tab:results}
+\centering
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccccc}
 \toprule
 \textbf{Method} & \textbf{Collapse Round} & \textbf{Final Retain Acc. (\%)} & \textbf{Final Test Acc. (\%)} & \textbf{Forget Acc. (\%)} & \textbf{MIA AUC} & \textbf{Total Time (s)} \\
@@ -219,7 +229,8 @@ SalUn (Fan et al., 2024) \cite{b5} & None ($>20$ Stable) & 95.03 & 88.03 & 10.40
 Exact Retraining (Gold Standard) & None ($>20$ Stable) & 99.10 & 92.70 & 9.20 & 0.512 & $\approx 21,100.0$ \\
 \textbf{ASUC-SOM (Ours)} & \textbf{None ($>20$ Stable)} & \textbf{97.19} & \textbf{90.89} & \textbf{10.20} & \textbf{0.546} & \textbf{15,655.4} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table*}
 
 \begin{figure}[htbp]
@@ -234,20 +245,22 @@ As shown in Table~\ref{tab:results}, static SSD undergoes catastrophic represent
 In contrast, ASUC-SOM continuously tracks directional gradient overlap via SOM (Fig.~\ref{fig:som_drift}). When the overlap score enters the Amber caution zone ($s \ge 0.40$), the controller dynamically shifts execution to Tier 2 (SalUn), successfully preserving 97.19\% retain accuracy and 90.89\% test generalization across all 20 rounds.
 
 \begin{table}[htbp]
-\centering
-\caption{Design Comparison: Static Unlearning vs. ASUC-SOM}
+\caption{Architectural Comparison: Static Unlearning vs. ASUC-SOM}
 \label{tab:comparison}
+\centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lll}
 \toprule
 \textbf{Dimension} & \textbf{Static Baselines (SSD / SalUn / GA)} & \textbf{ASUC-SOM (Ours)} \\
 \midrule
-Operational Setting & Single isolated request & Continuous stream (20+ rounds) \\
+Operational Scope & Single isolated request & Continuous stream (20+ rounds) \\
 Routing Strategy & Single fixed heuristic & Dynamic three-tier routing \\
 Geometry Tracking & Not tracked & Orthonormal basis $Q_k$, SOM score \\
-Safety Verification & No post-update check & Closed-loop verify, rollback, escalate \\
+Verification & Open-loop (no checks) & Closed-loop verify, rollback, escalate \\
 Auditability & Ad-hoc benchmark logs & Hash-chained per-batch audit records \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \subsection{Multi-Workload Stress Testing (Workloads B and C)}
