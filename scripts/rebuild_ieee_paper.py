@@ -63,19 +63,50 @@ def build_ieee_paper():
     run_title = p_title.add_run("ASUC-SOM: Subspace-Aware Adaptive Routing for Sequential Machine Unlearning under GDPR Article 17")
     style_run(run_title, size_pt=18, bold=True)
 
-    # ── Authors ─────────────────────────────────────────────────────
-    p_auth = doc.add_paragraph()
-    p_auth.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_auth.paragraph_format.space_after = Pt(14)
+    # ── Authors (IEEE Multi-Author Format) ─────────────────────────
+    # We create a 2-row table for centered IEEE author layout
+    t_auth = doc.add_table(rows=2, cols=4)
+    t_auth.alignment = WD_TABLE_ALIGNMENT.CENTER
     
-    run_a1 = p_auth.add_run("Mithul Kannan\n")
-    style_run(run_a1, size_pt=10, bold=True)
+    auth_data = [
+        ("Mithul Kannan", "mithulkannan17@gmail.com"),
+        ("K Anantha Krishna Rao", "ananthakrishna@nie.ac.in"),
+        ("M M Kaverappa", "kaverappa@nie.ac.in"),
+        ("M Bharath Mani", "bharathmani@nie.ac.in")
+    ]
+    for c_i, (name, email) in enumerate(auth_data):
+        cell = t_auth.cell(0, c_i)
+        p = cell.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(2)
+        p.paragraph_format.line_spacing = 1.0
+        
+        r_n = p.add_run(f"{name}\n")
+        style_run(r_n, size_pt=9.5, bold=True)
+        r_d = p.add_run("Dept. of CSE (AIML)\nNIE, Mysuru, India\n")
+        style_run(r_d, size_pt=8, italic=True)
+        r_e = p.add_run(email)
+        style_run(r_e, size_pt=7.5)
+        set_cell_border(cell)
+
+    # Merge row 2 cells to center the 5th author (Associate Professor)
+    cell_guide = t_auth.cell(1, 0)
+    for c_i in range(1, 4):
+        cell_guide.merge(t_auth.cell(1, c_i))
+    p_g = cell_guide.paragraphs[0]
+    p_g.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_g.paragraph_format.space_before = Pt(6)
+    p_g.paragraph_format.space_after = Pt(8)
+    p_g.paragraph_format.line_spacing = 1.0
     
-    run_affil = p_auth.add_run("Department of Computer Science and Engineering\nAutonomous Systems and Machine Learning Research Group\n")
-    style_run(run_affil, size_pt=9, italic=True)
-    
-    run_email = p_auth.add_run("mithulkannan@ieee.org")
-    style_run(run_email, size_pt=9)
+    r_gn = p_g.add_run("Dr. Mayura Tapkire\n")
+    style_run(r_gn, size_pt=9.5, bold=True)
+    r_gd = p_g.add_run("Associate Professor, Dept. of CSE (Artificial Intelligence & Machine Learning)\nThe National Institute of Engineering, Mysuru, Karnataka, India\n")
+    style_run(r_gd, size_pt=8, italic=True)
+    r_ge = p_g.add_run("mayuratapkire@nie.ac.in")
+    style_run(r_ge, size_pt=7.5)
+    set_cell_border(cell_guide)
 
     # ── 2. Create Section 2 for Two-Column Body ─────────────────────
     sec2 = doc.add_section(docx.enum.section.WD_SECTION.CONTINUOUS)
@@ -318,10 +349,10 @@ def build_ieee_paper():
 
     # ── Section V: Evaluation Design ─────────────────────────────────
     add_h1("V. EVALUATION DESIGN")
-    add_p("Data and model. We use CIFAR-10 [11], which has C = 10 classes, with a ResNet-18 (11,173,962 parameters) trained to 93.44% test accuracy and 99.40% train retain accuracy. Request stream. Each experiment runs T = 20 sequential rounds. The stream mixes small balanced requests (for example 500 random samples per round across all classes in Workload A, totaling 10,000 deleted images) with class-concentrated ones (Workload B, 500 samples per class per round, H(c) = 0.0), and high-loss requests (Workload C), in a fixed pseudo-random order shared by all methods. Baselines. Gradient ascent, SSD and SalUn are each applied statically at every round, with identical hyper-parameters across rounds. Exact retraining is the reference for cost and for the ideal outcome.")
+    add_p("Data and model. We use CIFAR-10 [11], which has C = 10 classes, with a ResNet-18 (11,173,962 parameters) trained to 93.44% test accuracy and 99.40% train retain accuracy after 200 epochs of SGD. Request stream. Each experiment runs T = 20 sequential rounds. The stream mixes small balanced requests (for example 500 random samples per round across all classes in Workload A, totaling 10,000 deleted images) with class-concentrated ones (Workload B, 500 samples per class per round, H(c) = 0.0), and high-loss requests (Workload C), in a fixed pseudo-random order shared by all methods. Baselines. Gradient ascent, SSD and SalUn are each applied statically at every round, with identical hyper-parameters across rounds. Exact retraining is the reference for cost and for the ideal outcome.")
     add_p("Metrics. We report forget accuracy, retain accuracy, test accuracy and the membership-inference AUC after every round, plus wall-clock time and speedup relative to retraining. For the sequential setting we add two summary numbers: the number of rounds before retain accuracy falls to within 5 points of chance, and the tier histogram of the controller including how often escalation occurred. All results are averaged over 3 seeds. Training settings are SGD with momentum 0.9, weight decay 5e-4, initial learning rate 0.1 cosine-annealed over 200 epochs, and batch size 128.")
     add_p("Ablations and sensitivity. To see what each component contributes we remove them one at a time. Without SOM, the router uses only |Df| and h. Without the router, every request goes to a single tier. Without the gate, updates are released unchecked. We also sweep τl and τh over a grid around the defaults and report how the Tier 3 fraction and the final retain accuracy move. Finally, we compare SOM against a plain drift norm ‖θt − θ0‖ as the routing signal, which tests the claim in Section IV-C that direction matters and not only distance.")
-    add_p("Reproducibility. Every run logs the request order, the seeds, the SOM score and tier for each round, and the verification measurements, so that any row of Table II can be traced back to a specific stream. Full code, dataset loaders, and raw logs are available at https://github.com/mithulkannan17/Adaptive-unlearning.")
+    add_p("Reproducibility & Testbed. All experiments were conducted on an NVIDIA GeForce RTX 4060 Laptop GPU (8 GB VRAM), Intel Core i7-13700H @ 2.40 GHz, 16 GB DDR5 RAM, PyTorch 2.4.1+cu124 on Windows 11. Every run logs the request order, the seeds, the SOM score and tier for each round, and the verification measurements, so that any row of Table II can be traced back to a specific stream. Full code, dataset loaders, and raw logs are available at https://github.com/mithulkannan17/Adaptive-unlearning.")
 
     # ── Section VI: Results and Discussion ───────────────────────────
     add_h1("VI. RESULTS AND DISCUSSION")
